@@ -1,6 +1,8 @@
 package util
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/spf13/viper"
@@ -23,19 +25,32 @@ type Config struct {
 	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
 }
 
-// LoadConfig reads configuration from file or environment variables.
 func LoadConfig(path string) (config Config, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
+	viper.SetConfigFile(path + "/app.env") // Explicitly specify the config file path
 
-	viper.AutomaticEnv()
+	// Clear any conflicting environment variable before reading the config
+	err = os.Unsetenv("DB_SOURCE")
+	if err != nil {
+		return config, fmt.Errorf("error unsetting DB_SOURCE environment variable: %w", err)
+	}
+
+	viper.AutomaticEnv() // This will allow environment variables to override
 
 	err = viper.ReadInConfig()
 	if err != nil {
-		return
+		return config, fmt.Errorf("error reading config file: %w", err)
 	}
 
 	err = viper.Unmarshal(&config)
-	return
+	if err != nil {
+		return config, fmt.Errorf("unable to decode into struct: %w", err)
+	}
+
+	// Debug: print the loaded DB_SOURCE value
+	fmt.Printf("Loaded DB_SOURCE: %s\n", config.DBSource)
+
+	return config, nil
 }
