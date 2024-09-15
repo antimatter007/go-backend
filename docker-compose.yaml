@@ -1,17 +1,9 @@
 version: "3.9"
+
 services:
-  postgres:
-    image: postgres:14-alpine
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=go_backend
-    ports:
-      - "5432:5432"
-    volumes:
-      - data-volume:/var/lib/postgresql/data
   redis:
     image: redis:7-alpine
+
   api:
     build:
       context: .
@@ -20,18 +12,19 @@ services:
       - "8080:8080"
       - "9090:9090"
     environment:
-      - DB_SOURCE=postgres://postgres:admin@localhost:5432/go_backend?sslmode=disable
+      # Pointing DB_SOURCE to the host.docker.internal to connect with the local Postgres
+      - DB_SOURCE=postgres://postgres:admin@host.docker.internal:5432/go_backend?sslmode=disable
       - REDIS_ADDRESS=redis:6379
     depends_on:
-      - postgres
       - redis
     entrypoint:
       [
         "/app/wait-for.sh",
-        "postgres:5432",
+        "host.docker.internal:5432",
         "--",
         "/app/start.sh"
       ]
-    command: [ "/app/main" ]
+    command: ["/app/main"]
+
 volumes:
   data-volume:
