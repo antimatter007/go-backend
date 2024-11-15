@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
+	db "github.com/antimatter007/go-backend/db/sqlc"
+	"github.com/antimatter007/go-backend/token"
 	"github.com/gin-gonic/gin"
-	db "github.com/techschool/simplebank/db/sqlc"
-	"github.com/techschool/simplebank/token"
 )
 
 type createAccountRequest struct {

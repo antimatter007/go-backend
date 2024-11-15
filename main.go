@@ -6,6 +6,14 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/antimatter007/go-backend/api"
+	db "github.com/antimatter007/go-backend/db/sqlc"
+	_ "github.com/antimatter007/go-backend/doc/statik"
+	"github.com/antimatter007/go-backend/gapi"
+	"github.com/antimatter007/go-backend/mail"
+	"github.com/antimatter007/go-backend/pb"
+	"github.com/antimatter007/go-backend/util"
+	"github.com/antimatter007/go-backend/worker"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -15,43 +23,45 @@ import (
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/techschool/simplebank/api"
-	db "github.com/techschool/simplebank/db/sqlc"
-	_ "github.com/techschool/simplebank/doc/statik"
-	"github.com/techschool/simplebank/gapi"
-	"github.com/techschool/simplebank/mail"
-	"github.com/techschool/simplebank/pb"
-	"github.com/techschool/simplebank/util"
-	"github.com/techschool/simplebank/worker"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func main() {
+	// Load configuration
 	config, err := util.LoadConfig(".")
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot load config")
 	}
 
+	// Configure logger for development
 	if config.Environment == "development" {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
+	// Connect to the database
 	connPool, err := pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to db")
 	}
+	defer connPool.Close()
 
+	// Run database migrations
 	runDBMigration(config.MigrationURL, config.DBSource)
 
+	// Initialize store
 	store := db.NewStore(connPool)
 
+	// Setup Redis options for Asynq
 	redisOpt := asynq.RedisClientOpt{
 		Addr: config.RedisAddress,
 	}
 
+	// Initialize task distributor
 	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
+
+	// Start task processor in a separate goroutine
 	go runTaskProcessor(config, redisOpt, store)
 	go runGatewayServer(config, store, taskDistributor)
 	runGrpcServer(config, store, taskDistributor)
@@ -158,6 +168,7 @@ func runGinServer(config util.Config, store db.Store) {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
+	log.Info().Msgf("start Gin HTTP server at %s", config.HTTPServerAddress)
 	err = server.Start(config.HTTPServerAddress)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot start server")

@@ -1,4 +1,4 @@
-DB_URL=postgresql://postgres:admin@localhost:5432/go_backend?sslmode=disable
+DB_URL=postgres://postgres:admin@localhost:5432/simplebank?sslmode=disable
 
 network:
 	docker network create bank-network
@@ -72,8 +72,8 @@ server:
 	go run main.go
 
 mock:
-	mockgen -package mockdb -destination db/mock/store.go github.com/techschool/simplebank/db/sqlc Store
-	mockgen -package mockwk -destination worker/mock/distributor.go github.com/techschool/simplebank/worker TaskDistributor
+	mockgen -package mockdb -destination db/mock/store.go github.com/github.com/antimatter007/go-backend/simplebank/db/sqlc Store
+	mockgen -package mockwk -destination worker/mock/distributor.go github.com/github.com/antimatter007/go-backend/simplebank/worker TaskDistributor
 
 proto:
 	rm -f pb/*.go
@@ -114,8 +114,8 @@ server:
 	go run main.go
 
 mock:
-	mockgen -package mockdb -destination db/mock/store.go github.com/techschool/simplebank/db/sqlc Store
-	mockgen -package mockwk -destination worker/mock/distributor.go github.com/techschool/simplebank/worker TaskDistributor
+	mockgen -package mockdb -destination db/mock/store.go github.com/github.com/antimatter007/go-backend/simplebank/db/sqlc Store
+	mockgen -package mockwk -destination worker/mock/distributor.go github.com/github.com/antimatter007/go-backend/simplebank/worker TaskDistributor
 
 proto:
 	rm -f pb/*.go
