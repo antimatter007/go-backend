@@ -3,8 +3,8 @@ package mail
 import (
 	"testing"
 
-	"github.com/antimatter007/go-backend/simplebank/util"
 	"github.com/stretchr/testify/require"
+	"github.com/techschool/simplebank/util"
 )
 
 func TestSendEmailWithGmail(t *testing.T) {

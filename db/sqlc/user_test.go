@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/antimatter007/go-backend/util"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
+	"github.com/techschool/util"
 )
 
 func createRandomUser(t *testing.T) User {
