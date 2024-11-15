@@ -2,14 +2,13 @@ package util
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/spf13/viper"
 )
 
 // Config stores all configuration of the application.
-// The values are read by viper from a config file or environment variable.
+// The values are read by viper from environment variables.
 type Config struct {
 	Environment          string        `mapstructure:"ENVIRONMENT"`
 	DBSource             string        `mapstructure:"DB_SOURCE"`
@@ -29,19 +28,17 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
-	viper.SetConfigFile(path + "/app.env") // Explicitly specify the config file path
 
-	// Clear any conflicting environment variable before reading the config
-	err = os.Unsetenv("DB_SOURCE")
-	if err != nil {
-		return config, fmt.Errorf("error unsetting DB_SOURCE environment variable: %w", err)
-	}
+	viper.AutomaticEnv() // Automatically read environment variables
 
-	viper.AutomaticEnv() // This will allow environment variables to override
-
+	// Attempt to read the config file, but ignore if not found
 	err = viper.ReadInConfig()
 	if err != nil {
-		return config, fmt.Errorf("error reading config file: %w", err)
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			// Config file was found but another error was produced
+			return config, fmt.Errorf("error reading config file: %w", err)
+		}
+		// Config file not found; proceed with environment variables only
 	}
 
 	err = viper.Unmarshal(&config)
@@ -49,8 +46,8 @@ func LoadConfig(path string) (config Config, err error) {
 		return config, fmt.Errorf("unable to decode into struct: %w", err)
 	}
 
-	// Debug: print the loaded DB_SOURCE value
-	fmt.Printf("Loaded DB_SOURCE: %s\n", config.DBSource)
+	// Debug: print the loaded configuration (excluding sensitive data)
+	fmt.Printf("Loaded Config: %+v\n", config)
 
 	return config, nil
 }
