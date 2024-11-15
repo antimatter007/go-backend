@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/techschool/token"
+	"github.com/techschool/simplebank/token"
 )
 
 const (

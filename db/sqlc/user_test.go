@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
-	"github.com/techschool/util"
+	"github.com/techschool/simplebank/util"
 )
 
 func createRandomUser(t *testing.T) User {
