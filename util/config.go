@@ -28,16 +28,26 @@ type Config struct {
 func LoadConfig() (config Config, err error) {
 	viper.AutomaticEnv() // Automatically read environment variables
 
-	// Optionally, set a prefix if your env variables have one
-	// viper.SetEnvPrefix("APP")
-
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		return config, fmt.Errorf("unable to decode into struct: %w", err)
 	}
 
-	// Debug: print the loaded configuration (excluding sensitive data)
-	fmt.Printf("Loaded Config: %+v\n", config)
+	// Debug: print each configuration field individually
+	fmt.Printf("Loaded Config:\n")
+	fmt.Printf("Environment: %s\n", config.Environment)
+	fmt.Printf("DBSource: %s\n", config.DBSource)
+	fmt.Printf("MigrationURL: %s\n", config.MigrationURL)
+	fmt.Printf("RedisAddress: %s\n", config.RedisAddress)
+	fmt.Printf("HTTPServerAddress: %s\n", config.HTTPServerAddress)
+	fmt.Printf("GRPCServerAddress: %s\n", config.GRPCServerAddress)
+	fmt.Printf("TokenSymmetricKey: %s\n", config.TokenSymmetricKey)
+	fmt.Printf("AccessTokenDuration: %s\n", config.AccessTokenDuration)
+	fmt.Printf("RefreshTokenDuration: %s\n", config.RefreshTokenDuration)
+	fmt.Printf("EmailSenderName: %s\n", config.EmailSenderName)
+	fmt.Printf("EmailSenderAddress: %s\n", config.EmailSenderAddress)
+	// Avoid printing sensitive information
+	// fmt.Printf("EmailSenderPassword: %s\n", config.EmailSenderPassword)
 
 	return config, nil
 }
