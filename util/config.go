@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -26,7 +27,10 @@ type Config struct {
 
 // LoadConfig loads configuration from environment variables.
 func LoadConfig() (config Config, err error) {
-	viper.AutomaticEnv() // Automatically read environment variables
+	viper.AutomaticEnv()
+
+	// Set a key replacer to match environment variable names
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
