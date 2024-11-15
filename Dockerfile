@@ -32,7 +32,7 @@ WORKDIR /app
 ENV MIGRATE_VERSION=v4.15.2
 
 RUN curl -L https://github.com/golang-migrate/migrate/releases/download/${MIGRATE_VERSION}/migrate.linux-amd64.tar.gz \
-    | tar xzv && mv migrate.linux-amd64/migrate /usr/local/bin/ && rm -rf migrate.linux-amd64
+    | tar xzv && mv migrate /usr/local/bin/ && rm -rf migrate.linux-amd64
 
 # Copy the built binary from the builder stage
 COPY --from=builder /app/main .
