@@ -2,51 +2,60 @@ package util
 
 import (
 	"fmt"
-	"strings"
+	"log"
+	"os"
 	"time"
 
-	"github.com/go-playground/validator/v10"
-	"github.com/spf13/viper"
+	"github.com/joho/godotenv"
 )
 
 // Config stores all configuration of the application.
-// The values are read by viper from environment variables.
 type Config struct {
-	Environment          string        `mapstructure:"ENVIRONMENT" validate:"required"`
-	DBSource             string        `mapstructure:"DB_SOURCE" validate:"required,uri"`
-	MigrationURL         string        `mapstructure:"MIGRATION_URL" validate:"required,uri"`
-	RedisAddress         string        `mapstructure:"REDIS_ADDRESS" validate:"required,uri"`
-	HTTPServerAddress    string        `mapstructure:"HTTP_SERVER_ADDRESS" validate:"required,hostname_port"`
-	GRPCServerAddress    string        `mapstructure:"GRPC_SERVER_ADDRESS" validate:"required,hostname_port"`
-	TokenSymmetricKey    string        `mapstructure:"TOKEN_SYMMETRIC_KEY" validate:"required,min=32,max=32"`
-	AccessTokenDuration  time.Duration `mapstructure:"ACCESS_TOKEN_DURATION" validate:"required"`
-	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION" validate:"required"`
-	EmailSenderName      string        `mapstructure:"EMAIL_SENDER_NAME" validate:"required"`
-	EmailSenderAddress   string        `mapstructure:"EMAIL_SENDER_ADDRESS" validate:"required,email"`
-	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD" validate:"required"`
+	Environment          string        `mapstructure:"ENVIRONMENT"`
+	DBSource             string        `mapstructure:"DB_SOURCE"`
+	MigrationURL         string        `mapstructure:"MIGRATION_URL"`
+	RedisAddress         string        `mapstructure:"REDIS_ADDRESS"`
+	HTTPServerAddress    string        `mapstructure:"HTTP_SERVER_ADDRESS"`
+	GRPCServerAddress    string        `mapstructure:"GRPC_SERVER_ADDRESS"`
+	TokenSymmetricKey    string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
+	AccessTokenDuration  time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
+	EmailSenderName      string        `mapstructure:"EMAIL_SENDER_NAME"`
+	EmailSenderAddress   string        `mapstructure:"EMAIL_SENDER_ADDRESS"`
+	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
 }
 
-// LoadConfig loads configuration from environment variables.
+// LoadConfig loads configuration from the .env file and environment variables.
+func LoadConfig() (Config, error) {
+	var config Config
 
-func LoadConfig() (config Config, err error) {
-	viper.AutomaticEnv() // Automatically read environment variables
-
-	// Replace dots with underscores in environment variables
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
-	err = viper.Unmarshal(&config)
+	// Load .env file if it exists
+	err := godotenv.Load()
 	if err != nil {
-		return config, fmt.Errorf("unable to decode into struct: %w", err)
+		log.Println("No .env file found. Relying solely on environment variables.")
 	}
 
-	// Validate the configuration
-	validate := validator.New()
-	err = validate.Struct(config)
+	// Assign environment variables to config
+	config.Environment = os.Getenv("ENVIRONMENT")
+	config.DBSource = os.Getenv("DB_SOURCE")
+	config.MigrationURL = os.Getenv("MIGRATION_URL")
+	config.RedisAddress = os.Getenv("REDIS_ADDRESS")
+	config.HTTPServerAddress = os.Getenv("HTTP_SERVER_ADDRESS")
+	config.GRPCServerAddress = os.Getenv("GRPC_SERVER_ADDRESS")
+	config.TokenSymmetricKey = os.Getenv("TOKEN_SYMMETRIC_KEY")
+	config.AccessTokenDuration, err = time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
 	if err != nil {
-		return config, fmt.Errorf("configuration validation failed: %w", err)
+		return config, fmt.Errorf("invalid ACCESS_TOKEN_DURATION: %w", err)
 	}
+	config.RefreshTokenDuration, err = time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
+	if err != nil {
+		return config, fmt.Errorf("invalid REFRESH_TOKEN_DURATION: %w", err)
+	}
+	config.EmailSenderName = os.Getenv("EMAIL_SENDER_NAME")
+	config.EmailSenderAddress = os.Getenv("EMAIL_SENDER_ADDRESS")
+	config.EmailSenderPassword = os.Getenv("EMAIL_SENDER_PASSWORD")
 
-	// Debug: print each configuration field individually
+	// Debug: Print loaded configuration (exclude sensitive data)
 	fmt.Printf("Loaded Config:\n")
 	fmt.Printf("Environment: %s\n", config.Environment)
 	fmt.Printf("DBSource: %s\n", config.DBSource)
