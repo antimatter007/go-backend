@@ -3,11 +3,11 @@ package gapi
 import (
 	"fmt"
 
-	db "github.com/github.com/antimatter007/go-backend/simplebank/db/sqlc"
-	"github.com/github.com/antimatter007/go-backend/simplebank/pb"
-	"github.com/github.com/antimatter007/go-backend/simplebank/token"
-	"github.com/github.com/antimatter007/go-backend/simplebank/util"
-	"github.com/github.com/antimatter007/go-backend/simplebank/worker"
+	db "github.com/antimatter007/go-backend/simplebank/db/sqlc"
+	"github.com/antimatter007/go-backend/simplebank/pb"
+	"github.com/antimatter007/go-backend/simplebank/token"
+	"github.com/antimatter007/go-backend/simplebank/util"
+	"github.com/antimatter007/go-backend/simplebank/worker"
 )
 
 // Server serves gRPC requests for our banking service.

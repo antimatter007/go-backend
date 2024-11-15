@@ -3,9 +3,9 @@ package gapi
 import (
 	"context"
 
-	db "github.com/github.com/antimatter007/go-backend/simplebank/db/sqlc"
-	"github.com/github.com/antimatter007/go-backend/simplebank/pb"
-	"github.com/github.com/antimatter007/go-backend/simplebank/val"
+	db "github.com/antimatter007/go-backend/simplebank/db/sqlc"
+	"github.com/antimatter007/go-backend/simplebank/pb"
+	"github.com/antimatter007/go-backend/simplebank/val"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

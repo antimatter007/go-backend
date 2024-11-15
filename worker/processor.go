@@ -3,11 +3,11 @@ package worker
 import (
 	"context"
 
+	db "github.com/antimatter007/go-backend/simplebank/db/sqlc"
+	"github.com/antimatter007/go-backend/simplebank/mail"
 	"github.com/go-redis/redis/v8"
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
-	db "github.com/techschool/simplebank/db/sqlc"
-	"github.com/techschool/simplebank/mail"
 )
 
 const (
