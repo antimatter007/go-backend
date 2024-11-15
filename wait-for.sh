@@ -9,6 +9,7 @@ host_port="$1"
 shift
 cmd="$@"
 
+# Extract host and port
 host=$(echo "$host_port" | cut -d':' -f1)
 port=$(echo "$host_port" | cut -d':' -f2)
 
