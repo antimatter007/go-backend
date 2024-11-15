@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/antimatter007/go-backend/api"
 	db "github.com/antimatter007/go-backend/db/sqlc"
 	_ "github.com/antimatter007/go-backend/doc/statik"
 	"github.com/antimatter007/go-backend/gapi"
@@ -30,7 +29,7 @@ import (
 
 func main() {
 	// Load configuration
-	config, err := util.LoadConfig(".")
+	config, err := util.LoadConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot load config")
 	}
@@ -159,18 +158,5 @@ func runGatewayServer(config util.Config, store db.Store, taskDistributor worker
 	err = http.Serve(listener, handler)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot start HTTP gateway server")
-	}
-}
-
-func runGinServer(config util.Config, store db.Store) {
-	server, err := api.NewServer(config, store)
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot create server")
-	}
-
-	log.Info().Msgf("start Gin HTTP server at %s", config.HTTPServerAddress)
-	err = server.Start(config.HTTPServerAddress)
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot start server")
 	}
 }

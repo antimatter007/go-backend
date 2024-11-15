@@ -24,22 +24,12 @@ type Config struct {
 	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
 }
 
-func LoadConfig(path string) (config Config, err error) {
-	viper.AddConfigPath(path)
-	viper.SetConfigName("app")
-	viper.SetConfigType("env")
-
+// LoadConfig loads configuration from environment variables.
+func LoadConfig() (config Config, err error) {
 	viper.AutomaticEnv() // Automatically read environment variables
 
-	// Attempt to read the config file, but ignore if not found
-	err = viper.ReadInConfig()
-	if err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			// Config file was found but another error was produced
-			return config, fmt.Errorf("error reading config file: %w", err)
-		}
-		// Config file not found; proceed with environment variables only
-	}
+	// Optionally, set a prefix if your env variables have one
+	// viper.SetEnvPrefix("APP")
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
