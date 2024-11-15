@@ -1,4 +1,5 @@
-module github.com/techschool/simplebank
+module github.com/antimatter007/go-backend
+
 
 go 1.21
 

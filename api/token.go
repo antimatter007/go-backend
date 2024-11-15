@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	db "github.com/techschool/simplebank/db/sqlc"
+	db "github.com/antimatter007/go-backend/db/sqlc"
 )
 
 type renewAccessTokenRequest struct {

@@ -9,12 +9,12 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	mockdb "github.com/techschool/simplebank/db/mock"
-	db "github.com/techschool/simplebank/db/sqlc"
-	"github.com/techschool/simplebank/pb"
-	"github.com/techschool/simplebank/util"
-	"github.com/techschool/simplebank/worker"
-	mockwk "github.com/techschool/simplebank/worker/mock"
+	mockdb "github.com/antimatter007/go-backend/db/mock"
+	db "github.com/antimatter007/go-backend/db/sqlc"
+	"github.com/antimatter007/go-backend/pb"
+	"github.com/antimatter007/go-backend/util"
+	"github.com/antimatter007/go-backend/worker"
+	mockwk "github.com/antimatter007/go-backend/worker/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

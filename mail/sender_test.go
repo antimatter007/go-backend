@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/techschool/simplebank/util"
+	"github.com/antimatter007/go-backend/util"
 )
 
 func TestSendEmailWithGmail(t *testing.T) {
