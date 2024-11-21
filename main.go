@@ -29,7 +29,7 @@ import (
 
 func main() {
 	// Load configuration
-	config, err := util.LoadConfig()
+	config, err := util.LoadConfig(".")
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot load config")
 	}

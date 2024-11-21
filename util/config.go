@@ -25,14 +25,15 @@ type Config struct {
 	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
 }
 
-// LoadConfig loads configuration from the .env file and environment variables.
-func LoadConfig() (Config, error) {
+// LoadConfig loads configuration from the specified path's .env file and environment variables.
+// If the .env file does not exist at the specified path, it falls back to environment variables.
+func LoadConfig(path string) (Config, error) {
 	var config Config
 
-	// Load .env file if it exists
-	err := godotenv.Load()
+	// Attempt to load the .env file from the specified path
+	err := godotenv.Load(fmt.Sprintf("%s/.env", path))
 	if err != nil {
-		log.Println("No .env file found. Relying solely on environment variables.")
+		log.Printf("No .env file found at %s/.env. Relying solely on environment variables.\n", path)
 	}
 
 	// Assign environment variables to config
@@ -43,14 +44,18 @@ func LoadConfig() (Config, error) {
 	config.HTTPServerAddress = os.Getenv("HTTP_SERVER_ADDRESS")
 	config.GRPCServerAddress = os.Getenv("GRPC_SERVER_ADDRESS")
 	config.TokenSymmetricKey = os.Getenv("TOKEN_SYMMETRIC_KEY")
+
+	// Parse duration strings into time.Duration types
 	config.AccessTokenDuration, err = time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
 	if err != nil {
 		return config, fmt.Errorf("invalid ACCESS_TOKEN_DURATION: %w", err)
 	}
+
 	config.RefreshTokenDuration, err = time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
 	if err != nil {
 		return config, fmt.Errorf("invalid REFRESH_TOKEN_DURATION: %w", err)
 	}
+
 	config.EmailSenderName = os.Getenv("EMAIL_SENDER_NAME")
 	config.EmailSenderAddress = os.Getenv("EMAIL_SENDER_ADDRESS")
 	config.EmailSenderPassword = os.Getenv("EMAIL_SENDER_PASSWORD")
