@@ -12,6 +12,7 @@ import (
 // Config stores all configuration of the application.
 type Config struct {
 	Environment          string        `mapstructure:"ENVIRONMENT"`
+	DBDriver             string        `mapstructure:"DB_DRIVER"`
 	DBSource             string        `mapstructure:"DB_SOURCE"`
 	MigrationURL         string        `mapstructure:"MIGRATION_URL"`
 	RedisAddress         string        `mapstructure:"REDIS_ADDRESS"`
@@ -38,12 +39,16 @@ func LoadConfig() (Config, error) {
 
 	// Assign environment variables to config
 	config.Environment = os.Getenv("ENVIRONMENT")
+	config.DBDriver = os.Getenv("DB_DRIVER")
 	config.DBSource = os.Getenv("DB_SOURCE")
 	config.MigrationURL = os.Getenv("MIGRATION_URL")
 	config.RedisAddress = os.Getenv("REDIS_ADDRESS")
 	config.HTTPServerAddress = os.Getenv("HTTP_SERVER_ADDRESS")
 	config.GRPCServerAddress = os.Getenv("GRPC_SERVER_ADDRESS")
 	config.TokenSymmetricKey = os.Getenv("TOKEN_SYMMETRIC_KEY")
+	config.EmailSenderName = os.Getenv("EMAIL_SENDER_NAME")
+	config.EmailSenderAddress = os.Getenv("EMAIL_SENDER_ADDRESS")
+	config.EmailSenderPassword = os.Getenv("EMAIL_SENDER_PASSWORD")
 
 	// Parse duration strings into time.Duration types
 	accessDurationStr := os.Getenv("ACCESS_TOKEN_DURATION")
@@ -58,14 +63,13 @@ func LoadConfig() (Config, error) {
 		return config, fmt.Errorf("invalid REFRESH_TOKEN_DURATION: %w", err)
 	}
 
-	config.EmailSenderName = os.Getenv("EMAIL_SENDER_NAME")
-	config.EmailSenderAddress = os.Getenv("EMAIL_SENDER_ADDRESS")
-	config.EmailSenderPassword = os.Getenv("EMAIL_SENDER_PASSWORD")
-
 	// Validate required fields
 	missingVars := []string{}
 	if config.Environment == "" {
 		missingVars = append(missingVars, "ENVIRONMENT")
+	}
+	if config.DBDriver == "" {
+		missingVars = append(missingVars, "DB_DRIVER")
 	}
 	if config.DBSource == "" {
 		missingVars = append(missingVars, "DB_SOURCE")
@@ -97,6 +101,7 @@ func LoadConfig() (Config, error) {
 	if config.Environment != "production" {
 		fmt.Printf("Loaded Config:\n")
 		fmt.Printf("Environment: %s\n", config.Environment)
+		fmt.Printf("DBDriver: %s\n", config.DBDriver)
 		fmt.Printf("DBSource: %s\n", config.DBSource)
 		fmt.Printf("MigrationURL: %s\n", config.MigrationURL)
 		fmt.Printf("RedisAddress: %s\n", config.RedisAddress)
