@@ -25,16 +25,15 @@ type Config struct {
 	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
 }
 
-// LoadConfig loads configuration from the specified path's app.env file and environment variables.
-// If the app.env file does not exist at the specified path, it falls back to environment variables.
-func LoadConfig(path string) (Config, error) {
+// LoadConfig loads configuration from environment variables.
+// It does not rely on an external .env file.
+func LoadConfig() (Config, error) {
 	var config Config
 
-	// Attempt to load the app.env file from the specified path
-	envFilePath := fmt.Sprintf("%s/app.env", path)
-	err := godotenv.Load(envFilePath)
+	// Attempt to load the app.env file from the current directory if it exists
+	err := godotenv.Load("app.env")
 	if err != nil {
-		log.Printf("No app.env file found at %s. Relying solely on environment variables.\n", envFilePath)
+		log.Println("No app.env file found. Relying solely on environment variables.")
 	}
 
 	// Assign environment variables to config
@@ -47,12 +46,14 @@ func LoadConfig(path string) (Config, error) {
 	config.TokenSymmetricKey = os.Getenv("TOKEN_SYMMETRIC_KEY")
 
 	// Parse duration strings into time.Duration types
-	config.AccessTokenDuration, err = time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
+	accessDurationStr := os.Getenv("ACCESS_TOKEN_DURATION")
+	config.AccessTokenDuration, err = time.ParseDuration(accessDurationStr)
 	if err != nil {
 		return config, fmt.Errorf("invalid ACCESS_TOKEN_DURATION: %w", err)
 	}
 
-	config.RefreshTokenDuration, err = time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
+	refreshDurationStr := os.Getenv("REFRESH_TOKEN_DURATION")
+	config.RefreshTokenDuration, err = time.ParseDuration(refreshDurationStr)
 	if err != nil {
 		return config, fmt.Errorf("invalid REFRESH_TOKEN_DURATION: %w", err)
 	}
@@ -60,6 +61,37 @@ func LoadConfig(path string) (Config, error) {
 	config.EmailSenderName = os.Getenv("EMAIL_SENDER_NAME")
 	config.EmailSenderAddress = os.Getenv("EMAIL_SENDER_ADDRESS")
 	config.EmailSenderPassword = os.Getenv("EMAIL_SENDER_PASSWORD")
+
+	// Validate required fields
+	missingVars := []string{}
+	if config.Environment == "" {
+		missingVars = append(missingVars, "ENVIRONMENT")
+	}
+	if config.DBSource == "" {
+		missingVars = append(missingVars, "DB_SOURCE")
+	}
+	if config.AccessTokenDuration == 0 {
+		missingVars = append(missingVars, "ACCESS_TOKEN_DURATION")
+	}
+	if config.RefreshTokenDuration == 0 {
+		missingVars = append(missingVars, "REFRESH_TOKEN_DURATION")
+	}
+	if config.TokenSymmetricKey == "" {
+		missingVars = append(missingVars, "TOKEN_SYMMETRIC_KEY")
+	}
+	if config.EmailSenderName == "" {
+		missingVars = append(missingVars, "EMAIL_SENDER_NAME")
+	}
+	if config.EmailSenderAddress == "" {
+		missingVars = append(missingVars, "EMAIL_SENDER_ADDRESS")
+	}
+	if config.EmailSenderPassword == "" {
+		missingVars = append(missingVars, "EMAIL_SENDER_PASSWORD")
+	}
+
+	if len(missingVars) > 0 {
+		return config, fmt.Errorf("missing required environment variables: %v", missingVars)
+	}
 
 	// Debug: Print loaded configuration (exclude sensitive data)
 	if config.Environment != "production" {
