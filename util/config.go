@@ -25,15 +25,16 @@ type Config struct {
 	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
 }
 
-// LoadConfig loads configuration from the specified path's .env file and environment variables.
-// If the .env file does not exist at the specified path, it falls back to environment variables.
+// LoadConfig loads configuration from the specified path's app.env file and environment variables.
+// If the app.env file does not exist at the specified path, it falls back to environment variables.
 func LoadConfig(path string) (Config, error) {
 	var config Config
 
-	// Attempt to load the .env file from the specified path
-	err := godotenv.Load(fmt.Sprintf("%s/.env", path))
+	// Attempt to load the app.env file from the specified path
+	envFilePath := fmt.Sprintf("%s/app.env", path)
+	err := godotenv.Load(envFilePath)
 	if err != nil {
-		log.Printf("No .env file found at %s/.env. Relying solely on environment variables.\n", path)
+		log.Printf("No app.env file found at %s. Relying solely on environment variables.\n", envFilePath)
 	}
 
 	// Assign environment variables to config
@@ -61,20 +62,20 @@ func LoadConfig(path string) (Config, error) {
 	config.EmailSenderPassword = os.Getenv("EMAIL_SENDER_PASSWORD")
 
 	// Debug: Print loaded configuration (exclude sensitive data)
-	fmt.Printf("Loaded Config:\n")
-	fmt.Printf("Environment: %s\n", config.Environment)
-	fmt.Printf("DBSource: %s\n", config.DBSource)
-	fmt.Printf("MigrationURL: %s\n", config.MigrationURL)
-	fmt.Printf("RedisAddress: %s\n", config.RedisAddress)
-	fmt.Printf("HTTPServerAddress: %s\n", config.HTTPServerAddress)
-	fmt.Printf("GRPCServerAddress: %s\n", config.GRPCServerAddress)
-	fmt.Printf("TokenSymmetricKey: %s\n", config.TokenSymmetricKey)
-	fmt.Printf("AccessTokenDuration: %s\n", config.AccessTokenDuration)
-	fmt.Printf("RefreshTokenDuration: %s\n", config.RefreshTokenDuration)
-	fmt.Printf("EmailSenderName: %s\n", config.EmailSenderName)
-	fmt.Printf("EmailSenderAddress: %s\n", config.EmailSenderAddress)
-	// Avoid printing sensitive information
-	// fmt.Printf("EmailSenderPassword: %s\n", config.EmailSenderPassword)
+	if config.Environment != "production" {
+		fmt.Printf("Loaded Config:\n")
+		fmt.Printf("Environment: %s\n", config.Environment)
+		fmt.Printf("DBSource: %s\n", config.DBSource)
+		fmt.Printf("MigrationURL: %s\n", config.MigrationURL)
+		fmt.Printf("RedisAddress: %s\n", config.RedisAddress)
+		fmt.Printf("HTTPServerAddress: %s\n", config.HTTPServerAddress)
+		fmt.Printf("GRPCServerAddress: %s\n", config.GRPCServerAddress)
+		fmt.Printf("TokenSymmetricKey: [REDACTED]\n")
+		fmt.Printf("AccessTokenDuration: %s\n", config.AccessTokenDuration)
+		fmt.Printf("RefreshTokenDuration: %s\n", config.RefreshTokenDuration)
+		fmt.Printf("EmailSenderName: %s\n", config.EmailSenderName)
+		fmt.Printf("EmailSenderAddress: %s\n", config.EmailSenderAddress)
+	}
 
 	return config, nil
 }
