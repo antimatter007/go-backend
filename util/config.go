@@ -15,6 +15,7 @@ type Config struct {
 	DBSource             string        `mapstructure:"DB_SOURCE"`
 	MigrationURL         string        `mapstructure:"MIGRATION_URL"`
 	RedisAddress         string        `mapstructure:"REDIS_ADDRESS"`
+	RedisPassword        string        `mapstructure:"REDIS_ADDRESS"`
 	HTTPServerAddress    string        `mapstructure:"HTTP_SERVER_ADDRESS"`
 	GRPCServerAddress    string        `mapstructure:"GRPC_SERVER_ADDRESS"`
 	TokenSymmetricKey    string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
@@ -41,7 +42,9 @@ func LoadConfig(path string) (Config, error) {
 	config.Environment = os.Getenv("ENVIRONMENT")
 	config.DBSource = os.Getenv("DB_SOURCE")
 	config.MigrationURL = os.Getenv("MIGRATION_URL")
-	config.RedisAddress = os.Getenv("REDIS_ADDRESS")
+	// Hardcoded Redis configuration
+	config.RedisAddress = "redis.railway.internal:6379"
+	config.RedisPassword = "ZAnhibjdYDumRyMerccJISCXaMJerjyV"
 	config.HTTPServerAddress = os.Getenv("HTTP_SERVER_ADDRESS")
 	config.GRPCServerAddress = os.Getenv("GRPC_SERVER_ADDRESS")
 	config.TokenSymmetricKey = os.Getenv("TOKEN_SYMMETRIC_KEY")
