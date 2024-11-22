@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
@@ -11,23 +12,24 @@ import (
 
 // Config stores all configuration of the application.
 type Config struct {
-	Environment          string        `mapstructure:"ENVIRONMENT"`
-	DBSource             string        `mapstructure:"DB_SOURCE"`
-	MigrationURL         string        `mapstructure:"MIGRATION_URL"`
-	RedisAddress         string        `mapstructure:"REDIS_ADDRESS"`
-	RedisPassword        string        `mapstructure:"REDIS_ADDRESS"`
-	HTTPServerAddress    string        `mapstructure:"HTTP_SERVER_ADDRESS"`
-	GRPCServerAddress    string        `mapstructure:"GRPC_SERVER_ADDRESS"`
-	TokenSymmetricKey    string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
-	AccessTokenDuration  time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
-	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
-	EmailSenderName      string        `mapstructure:"EMAIL_SENDER_NAME"`
-	EmailSenderAddress   string        `mapstructure:"EMAIL_SENDER_ADDRESS"`
-	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
+	Environment          string        // Application environment
+	DBSource             string        // Database connection string
+	MigrationURL         string        // URL for database migrations
+	RedisURL             string        // Redis connection URL
+	RedisAddress         string        // Redis server address
+	RedisPassword        string        // Redis password
+	HTTPServerAddress    string        // HTTP server address
+	GRPCServerAddress    string        // gRPC server address
+	TokenSymmetricKey    string        // Symmetric key for token signing
+	AccessTokenDuration  time.Duration // Duration for access tokens
+	RefreshTokenDuration time.Duration // Duration for refresh tokens
+	EmailSenderName      string        // Name of the email sender
+	EmailSenderAddress   string        // Email address of the sender
+	EmailSenderPassword  string        // Password for the sender's email account
 }
 
-// LoadConfig loads configuration from the specified path's app.env file and environment variables.
-// If the app.env file does not exist at the specified path, it falls back to environment variables.
+// LoadConfig loads configuration from environment variables.
+// Redis configuration is parsed from the Redis URL.
 func LoadConfig(path string) (Config, error) {
 	var config Config
 
@@ -40,29 +42,87 @@ func LoadConfig(path string) (Config, error) {
 
 	// Assign environment variables to config
 	config.Environment = os.Getenv("ENVIRONMENT")
-	config.DBSource = os.Getenv("DB_SOURCE")
+
+	// Hardcoded DBSource (PostgreSQL connection string)
+	config.DBSource = "postgresql://postgres:<YOUR_POSTGRES_PASSWORD>@<YOUR_POSTGRES_HOST>:<YOUR_POSTGRES_PORT>/<YOUR_DATABASE_NAME>?sslmode=disable"
+
 	config.MigrationURL = os.Getenv("MIGRATION_URL")
-	// Hardcoded Redis configuration
-	config.RedisAddress = "redis.railway.internal:6379"
-	config.RedisPassword = "ZAnhibjdYDumRyMerccJISCXaMJerjyV"
+	config.RedisURL = os.Getenv("REDIS_URL")
 	config.HTTPServerAddress = os.Getenv("HTTP_SERVER_ADDRESS")
 	config.GRPCServerAddress = os.Getenv("GRPC_SERVER_ADDRESS")
 	config.TokenSymmetricKey = os.Getenv("TOKEN_SYMMETRIC_KEY")
+	config.EmailSenderName = os.Getenv("EMAIL_SENDER_NAME")
+	config.EmailSenderAddress = os.Getenv("EMAIL_SENDER_ADDRESS")
+	config.EmailSenderPassword = os.Getenv("EMAIL_SENDER_PASSWORD")
 
 	// Parse duration strings into time.Duration types
-	config.AccessTokenDuration, err = time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
+	accessTokenDurationStr := os.Getenv("ACCESS_TOKEN_DURATION")
+	if accessTokenDurationStr == "" {
+		return config, fmt.Errorf("ACCESS_TOKEN_DURATION is not set")
+	}
+	config.AccessTokenDuration, err = time.ParseDuration(accessTokenDurationStr)
 	if err != nil {
 		return config, fmt.Errorf("invalid ACCESS_TOKEN_DURATION: %w", err)
 	}
 
-	config.RefreshTokenDuration, err = time.ParseDuration(os.Getenv("REFRESH_TOKEN_DURATION"))
+	refreshTokenDurationStr := os.Getenv("REFRESH_TOKEN_DURATION")
+	if refreshTokenDurationStr == "" {
+		return config, fmt.Errorf("REFRESH_TOKEN_DURATION is not set")
+	}
+	config.RefreshTokenDuration, err = time.ParseDuration(refreshTokenDurationStr)
 	if err != nil {
 		return config, fmt.Errorf("invalid REFRESH_TOKEN_DURATION: %w", err)
 	}
 
-	config.EmailSenderName = os.Getenv("EMAIL_SENDER_NAME")
-	config.EmailSenderAddress = os.Getenv("EMAIL_SENDER_ADDRESS")
-	config.EmailSenderPassword = os.Getenv("EMAIL_SENDER_PASSWORD")
+	// Parse Redis URL
+	if config.RedisURL == "" {
+		return config, fmt.Errorf("REDIS_URL is not set")
+	}
+	err = parseRedisURL(config.RedisURL, &config)
+	if err != nil {
+		return config, fmt.Errorf("failed to parse REDIS_URL: %w", err)
+	}
+
+	// Validate required fields
+	missingFields := []string{}
+
+	if config.Environment == "" {
+		missingFields = append(missingFields, "ENVIRONMENT")
+	}
+	if config.DBSource == "" {
+		missingFields = append(missingFields, "DB_SOURCE")
+	}
+	if config.MigrationURL == "" {
+		missingFields = append(missingFields, "MIGRATION_URL")
+	}
+	if config.RedisAddress == "" {
+		missingFields = append(missingFields, "REDIS_ADDRESS")
+	}
+	if config.RedisPassword == "" {
+		missingFields = append(missingFields, "REDIS_PASSWORD")
+	}
+	if config.HTTPServerAddress == "" {
+		missingFields = append(missingFields, "HTTP_SERVER_ADDRESS")
+	}
+	if config.GRPCServerAddress == "" {
+		missingFields = append(missingFields, "GRPC_SERVER_ADDRESS")
+	}
+	if config.TokenSymmetricKey == "" {
+		missingFields = append(missingFields, "TOKEN_SYMMETRIC_KEY")
+	}
+	if config.EmailSenderName == "" {
+		missingFields = append(missingFields, "EMAIL_SENDER_NAME")
+	}
+	if config.EmailSenderAddress == "" {
+		missingFields = append(missingFields, "EMAIL_SENDER_ADDRESS")
+	}
+	if config.EmailSenderPassword == "" {
+		missingFields = append(missingFields, "EMAIL_SENDER_PASSWORD")
+	}
+
+	if len(missingFields) > 0 {
+		return config, fmt.Errorf("missing required environment variables: %v", missingFields)
+	}
 
 	// Debug: Print loaded configuration (exclude sensitive data)
 	if config.Environment != "production" {
@@ -78,7 +138,26 @@ func LoadConfig(path string) (Config, error) {
 		fmt.Printf("RefreshTokenDuration: %s\n", config.RefreshTokenDuration)
 		fmt.Printf("EmailSenderName: %s\n", config.EmailSenderName)
 		fmt.Printf("EmailSenderAddress: %s\n", config.EmailSenderAddress)
+		// Do not print EmailSenderPassword or RedisPassword
 	}
 
 	return config, nil
+}
+
+// parseRedisURL parses the Redis URL and updates the config with address and password.
+func parseRedisURL(redisURL string, config *Config) error {
+	parsedURL, err := url.Parse(redisURL)
+	if err != nil {
+		return fmt.Errorf("invalid Redis URL: %w", err)
+	}
+
+	// Extract host and port
+	config.RedisAddress = parsedURL.Host
+
+	// Extract password
+	if parsedURL.User != nil {
+		config.RedisPassword, _ = parsedURL.User.Password()
+	}
+
+	return nil
 }

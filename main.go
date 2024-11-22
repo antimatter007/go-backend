@@ -54,7 +54,8 @@ func main() {
 
 	// Setup Redis options for Asynq
 	redisOpt := asynq.RedisClientOpt{
-		Addr: config.RedisAddress,
+		Addr:     config.RedisAddress,
+		Password: config.RedisPassword,
 	}
 
 	// Initialize task distributor
@@ -65,6 +66,8 @@ func main() {
 	go runGatewayServer(config, store, taskDistributor)
 	runGrpcServer(config, store, taskDistributor)
 }
+
+// ... (rest of the code remains the same)
 
 func runDBMigration(migrationURL string, dbSource string) {
 	migration, err := migrate.New(migrationURL, dbSource)
@@ -95,8 +98,8 @@ func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.Ta
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
-	gprcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
-	grpcServer := grpc.NewServer(gprcLogger)
+	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
+	grpcServer := grpc.NewServer(grpcLogger)
 	pb.RegisterSimpleBankServer(grpcServer, server)
 	reflection.Register(grpcServer)
 
