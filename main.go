@@ -53,9 +53,8 @@ func main() {
 	store := db.NewStore(connPool)
 
 	// Setup Redis options for Asynq
-	redisAddr := "redis://default:bgqFDngzDcgWjBwtRfUGlQTxtlqDKPjP@junction.proxy.rlwy.net:50159"
 	redisOpt := asynq.RedisClientOpt{
-		Addr:     redisAddr,
+		Addr:     config.RedisAddress,
 		Password: config.RedisPassword,
 	}
 
