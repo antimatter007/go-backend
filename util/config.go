@@ -12,8 +12,8 @@ import (
 
 // Config stores all configuration of the application.
 type Config struct {
-	Environment          string        // Application environment
-	DBSource             string        // Database connection string
+	Environment          string        // Application environment (development, production, etc.)
+	DBSource             string        // Database connection string (hardcoded)
 	MigrationURL         string        // URL for database migrations
 	RedisURL             string        // Redis connection URL
 	RedisAddress         string        // Redis server address
@@ -29,7 +29,6 @@ type Config struct {
 }
 
 // LoadConfig loads configuration from environment variables.
-// Redis configuration is parsed from the Redis URL.
 func LoadConfig(path string) (Config, error) {
 	var config Config
 
@@ -44,7 +43,7 @@ func LoadConfig(path string) (Config, error) {
 	config.Environment = os.Getenv("ENVIRONMENT")
 
 	// Hardcoded DBSource (PostgreSQL connection string)
-	config.DBSource = "postgresql://postgres:<YOUR_POSTGRES_PASSWORD>@<YOUR_POSTGRES_HOST>:<YOUR_POSTGRES_PORT>/<YOUR_DATABASE_NAME>?sslmode=disable"
+	config.DBSource = "postgresql://postgres:lkjukPxvDEXTlgnxPvqHtorWdRNPjejG@autorack.proxy.rlwy.net:12999/railway?sslmode=disable"
 
 	config.MigrationURL = os.Getenv("MIGRATION_URL")
 	config.RedisURL = os.Getenv("REDIS_URL")
