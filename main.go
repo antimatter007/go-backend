@@ -53,8 +53,9 @@ func main() {
 	store := db.NewStore(connPool)
 
 	// Setup Redis options for Asynq
+	redisAddr := "redis://default:bgqFDngzDcgWjBwtRfUGlQTxtlqDKPjP@junction.proxy.rlwy.net:50159"
 	redisOpt := asynq.RedisClientOpt{
-		Addr:     config.RedisAddress,
+		Addr:     redisAddr,
 		Password: config.RedisPassword,
 	}
 
@@ -66,8 +67,6 @@ func main() {
 	go runGatewayServer(config, store, taskDistributor)
 	runGrpcServer(config, store, taskDistributor)
 }
-
-// ... (rest of the code remains the same)
 
 func runDBMigration(migrationURL string, dbSource string) {
 	migration, err := migrate.New(migrationURL, dbSource)
