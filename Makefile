@@ -1,12 +1,13 @@
 # Makefile
 
-# Define variables using environment variables
-PGUSER := $(POSTGRES_USER)
-PGPASSWORD := $(POSTGRES_PASSWORD)
-PGHOST := $(RAILWAY_PRIVATE_DOMAIN)
-PGPORT := 5432
-PGDATABASE := $(POSTGRES_DB)
-DB_URL := postgresql://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)?sslmode=disable
+# Database configuration using environment variables with default values
+DB_USER ?= postgres
+DB_PASSWORD ?= admin
+DB_HOST ?= localhost
+DB_PORT ?= 5432
+DB_NAME ?= go_backend
+DB_SSLMODE ?= disable
+DB_URL = postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
 
 # Docker network
 network:
@@ -15,8 +16,8 @@ network:
 # PostgreSQL container
 postgres:
 	docker run --name postgres --network bank-network -p 5432:5432 \
-	-e POSTGRES_USER=$(PGUSER) \
-	-e POSTGRES_PASSWORD=$(PGPASSWORD) \
+	-e POSTGRES_USER=$(DB_USER) \
+	-e POSTGRES_PASSWORD=$(DB_PASSWORD) \
 	-d postgres:14-alpine
 
 # MySQL container (if needed)
@@ -27,11 +28,11 @@ mysql:
 
 # Create database
 createdb:
-	docker exec -it postgres createdb --username=$(PGUSER) --owner=$(PGUSER) $(PGDATABASE)
+	docker exec -it postgres createdb --username=$(DB_USER) --owner=$(DB_USER) $(DB_NAME)
 
 # Drop database
 dropdb:
-	docker exec -it postgres dropdb $(PGDATABASE)
+	docker exec -it postgres dropdb $(DB_NAME)
 
 # Migrations
 migrateup:
